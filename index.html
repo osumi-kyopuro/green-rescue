@@ -1,0 +1,261 @@
+<script src="processing.js"></script>
+<script type="text/processing" data-processing-target="processing-canvas">
+ 
+//ここをProcessingのコードと置き換えます！
+int px=200;//プレイヤのx座標
+int py=450;//プレイヤのy座標
+int pw=10;//プレイヤの横幅
+int ph=30;//プレイヤの縦幅
+int ow=30;//ブロックの幅
+int oh=30;//ブロックの高さ
+int[]oy=new int[10];//ブロック落ちるスピード
+int[] oColor= new int[10];//各ブロックの識別
+int[] oWait=new int[10];//各ブロック急降下するまでの時間
+int score;//得点
+int hp;//ライフ
+int gseq;//ゲーム遷移
+int mcnt;//点滅表示するための時間測定
+
+//ゲーム準備
+void setup(){
+  size (400,600); 
+  noStroke();
+  gameInit();
+  
+}
+
+//背景
+void draw(){
+  background(150);
+  if(gseq==0){
+    gameTitle();
+  }
+  else if(gseq==1){
+    gamePlay();
+  }
+  else if(gseq==2){
+    gameOver();
+  }
+}
+
+void playerDisp(){
+  fill(255);
+  rect(px,py,pw,ph,5);
+}
+
+//主人公の動作処理
+void playerMove(){
+  px=mouseX;
+  if((px+pw)>width){
+    px=width-pw;
+  }
+  py=mouseY;
+  if((py+ph)>height){
+    py=height-ph;
+  }
+}
+
+//ブロック表示
+void objDisp(){
+  for(int i=0;i<10;i++){
+    if(oColor[i]==0){
+      fill(255,255,0);
+    }
+    else if(oColor[i]>=1&&oColor[i]<=3){
+      fill(255,0,0);
+    }
+    else{
+      fill(0,255,0);
+    }
+    rect(i*40+5,oy[i],ow,oh,5);
+  }
+}
+
+//ブロック挙動
+void objMove(){
+  for(int i=0;i<10;i++){
+    if(oWait[i]>0){
+      oWait[i]--;
+    }else{
+      oy[i]+=4;
+    }
+    oy[i]+=1;
+    if(oy[i]>height){
+      if(oColor[i]==4){
+        hp--;
+      }
+      else if(oColor[i]>=5&&oColor[i]<=9){
+        hp--;
+      }
+      objInit(i);
+    }
+    if(score>=500){
+      oy[i]+=2;
+    }
+    else if(score>=1000){
+      oy[i]+=2;
+    }
+    else if(score>=1500){
+      oy[i]+=2;
+    }
+    else if(score>=2000){
+      oy[i]+=2;
+    }
+  }
+}
+
+//ブロック初期化
+void objInit(int no){
+  oy[no]=40;
+  oColor[no]=int(random(10));
+  oWait[no]=int(random(60,240));
+}
+
+//接触判定
+void hitCheck(){
+  int ox;
+  for(int i=0;i<10;i++){
+    ox=i*40+5;
+    if((px<(ox+ow))&&((px+pw)>ox)&&
+    (py<(oy[i]+oh))&&((py+ph)>oy[i])){
+      if(oColor[i]==0){
+        hp+=2;
+      }
+      else if(oColor[i]>=4&&oColor[i]<=9){
+        score+=10;  
+      }
+      else{
+        hp--;
+      }
+      objInit(i);
+    }
+  }
+}
+
+//得点表示
+void scoreDisp(){
+  textSize(24);
+  fill(255);
+  text("score:"+score,10,25);
+  text("HP:"+hp,300,25);
+  if(score>=500&&score<=520){
+    textSize(50);
+    fill(0);
+    text("Speed up!" ,50,300);
+  }
+  if(score>=1000&&score<=1020){
+    textSize(50);
+    fill(0);
+    text("Speed up!!" ,50,300);
+  }
+  if(score>=1500&&score<=1520){
+    textSize(50);
+    fill(0);
+    text("Speed up!!!" ,50,300);
+  }
+  if(score>=2000&&score<=2020){
+    textSize(50);
+    fill(0);
+    text("Speed up!!!!" ,50,300);
+  }
+}
+
+//ゲームタイトル画面
+void gameTitle(){
+
+  background(0);
+  fill(0,255,0);
+  rect(100,400,100,100);
+  textSize(50);
+  fill(0,255,0);
+  text("GREEN RESCUE",20,120); 
+  
+  mcnt++;
+  if((mcnt%60)<40){
+    textSize(20);
+    fill(255,0,255);
+    text("Click to start!",130,180);
+    fill(255);
+    ellipse(300,300,150,100);
+    textSize(40);
+    fill(0);
+    text("HELP!",240,310);
+    fill(255);
+    triangle(230,370,250,310,300,330);
+  }
+}
+
+//ゲーム進行時
+void gamePlay(){
+  objMove();
+  objDisp();
+  playerMove();
+  playerDisp();
+  hitCheck();
+  scoreDisp();
+    
+  if(hp<1){
+    gseq=2;
+  }
+}
+  
+//ゲーム終了時
+void gameOver(){
+  background(0);
+  fill(0,255,0);
+  rect(150,300,100,100);
+  
+  scoreDisp();
+  mcnt++;
+  if((mcnt%60)<40){
+    fill(255);
+    triangle(230,270,250,210,300,180);
+    fill(255);
+    ellipse(200,180,400,100); 
+  
+
+    if(score>=3000){
+      textSize(40);
+      fill(0,0,255);
+      text("YARUNA OMAE!!",40,200);
+     }
+    else if(score>=1000){
+      textSize(40);
+      fill(0,0,255);
+      text("MADAMADADANE!",20,200);
+    }
+    else if(score>=500){
+      textSize(50);
+      fill(0,0,255);
+      text("FIGHT",120,200);
+    }
+    else{
+      textSize(50);
+      fill(0,0,255);
+      text("KURUSHII..",60,200);
+    }
+  }
+}
+
+//ゲーム初期化
+void gameInit(){
+  for(int i=0; i<10;i++){
+    objInit(i);
+  }
+  score=0;
+  hp=5;
+  gseq=0;
+  mcnt=0;
+}
+
+//マウスでクリックしたとき
+void mousePressed(){
+  if(gseq==0){
+    gseq=1;
+  }
+  if(gseq==2){
+    gameInit();
+  }
+}
+</script>
+<canvas id="processing-canvas"></canvas>
